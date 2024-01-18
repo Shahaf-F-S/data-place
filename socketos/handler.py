@@ -1,7 +1,7 @@
 # handler.py
 
 import warnings
-from typing import Any, Callable, Iterable, Self
+from typing import Any, Callable, Iterable, Self, ClassVar
 from dataclasses import dataclass
 
 __all__ = [
@@ -23,6 +23,20 @@ class Handler:
     proceed: bool = False
     exit: bool = False
     data: ... = None
+
+    print_exception_handler: ClassVar[Callable[["Handler", Exception], Any]] = (
+        lambda h, e: print(
+            f"Exception raised and handled with data {h.data}:\n"
+            f"{type(e).__name__}:{e}"
+        )
+    )
+
+    warn_exception_handler: ClassVar[Callable[["Handler", Exception], Any]] = (
+        lambda h, e: warnings.warn(
+            f"Exception raised and handled with data {h.data}:\n"
+            f"{type(e).__name__}:{e}"
+        )
+    )
 
     def __enter__(self) -> Self:
         """
