@@ -1,11 +1,25 @@
 # io.py
 
 from typing import Self
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 __all__ = [
-    "ModelIO"
+    "ModelIO",
+    "attributes"
 ]
+
+def attributes(obj, /) -> dict[str, ...]:
+
+    if hasattr(obj, "__slots__"):
+        return {
+            attribute: getattr(obj, attribute)
+            for attribute in obj.__slots__
+        }
+
+    elif hasattr(obj, "__dict__"):
+        return obj.__dict__.copy()
+
+    return {}
 
 class ModelIO(metaclass=ABCMeta):
 
@@ -24,7 +38,6 @@ class ModelIO(metaclass=ABCMeta):
         return super().__init_subclass__(**kwargs)
 
     @classmethod
-    @abstractmethod
     def load(cls, data: dict[str, ...]) -> Self:
 
         return cls.labeled_load(data)
@@ -42,17 +55,20 @@ class ModelIO(metaclass=ABCMeta):
 
         for base in cls.TYPES[data[cls.TYPE]]:
             try:
-                return base.load(data)
+                if base.load != ModelIO.load:
+                    return base.load(data)
+
+                else:
+                    return base(**data)
 
             except (ValueError, TypeError, KeyError) as e:
                 pass
 
         raise e
 
-    @abstractmethod
     def dump(self) -> dict[str, ...]:
 
-        pass
+        return attributes(self)
 
     def labeled_dump(self) -> dict[str, ...]:
 
