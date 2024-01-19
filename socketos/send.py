@@ -29,7 +29,7 @@ __all__ = [
 
 def encode(data: ModelIO) -> bytes:
 
-    return json.dumps(data.labeled_json()).encode()
+    return json.dumps(data.labeled_dump()).encode()
 
 class BaseSender(BaseCommunicator, metaclass=ABCMeta):
 

@@ -50,13 +50,13 @@ class ModelIO(metaclass=ABCMeta):
         raise e
 
     @abstractmethod
-    def json(self) -> dict[str, ...]:
+    def dump(self) -> dict[str, ...]:
 
         pass
 
-    def labeled_json(self) -> dict[str, ...]:
+    def labeled_dump(self) -> dict[str, ...]:
 
-        data = self.json()
+        data = self.dump()
 
         data[self.TYPE] = type(self).__name__
 
