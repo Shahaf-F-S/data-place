@@ -5,7 +5,7 @@
 Installation
 -----------
 ````
-pip install looperation
+pip install data-place
 ````
 
 example
