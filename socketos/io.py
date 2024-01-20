@@ -1,14 +1,14 @@
 # io.py
 
-from typing import Self
+from typing import Self, overload, ClassVar
 from abc import ABCMeta
 
 __all__ = [
     "ModelIO",
-    "attributes"
+    "getattrs"
 ]
 
-def attributes(obj, /) -> dict[str, ...]:
+def getattrs(obj: object, /) -> dict[str, ...]:
 
     if hasattr(obj, "__slots__"):
         return {
@@ -23,11 +23,9 @@ def attributes(obj, /) -> dict[str, ...]:
 
 class ModelIO(metaclass=ABCMeta):
 
-    TYPES: dict[str, [type["ModelIO"]]] = {}
-
-    TYPE = "__type__"
-
-    __model__: str = None
+    TYPES: ClassVar[dict[str, [type["ModelIO"]]]] = {}
+    TYPE: ClassVar[str] = "__type__"
+    __model__: ClassVar[str | None] = None
 
     def __init_subclass__(cls, **kwargs) -> object:
 
@@ -68,7 +66,7 @@ class ModelIO(metaclass=ABCMeta):
 
     def dump(self) -> dict[str, ...]:
 
-        return attributes(self)
+        return getattrs(self)
 
     def labeled_dump(self) -> dict[str, ...]:
 
@@ -77,3 +75,44 @@ class ModelIO(metaclass=ABCMeta):
         data[self.TYPE] = type(self).__name__
 
         return data
+
+    @overload
+    def copy(self) -> Self:
+
+        pass
+
+    @overload
+    def copy(self, deep: bool = False) -> Self:
+
+        pass
+    
+    def copy(self, **kwargs) -> Self:
+
+        if kwargs.get("deep", False):
+            return self.deepcopy()
+        
+        else:
+            return self.shallowcopy()
+
+    def shallowcopy(self) -> Self:
+
+        data = self.__reduce__()
+
+        return data[0](data[1][0], data[1][1], getattrs(self))
+
+    def deepcopy(self) -> Self:
+
+        data = self.__reduce__()
+
+        state = getattrs(self)
+
+        for key in state:
+            for func in ("deepcopy", "deep_copy", "copy"):
+                if hasattr(state[key], func):
+                    try:
+                        state[key] = getattr(state[key], func)()
+
+                    except (TypeError, ValueError):
+                        pass
+
+        return data[0](data[1][0], data[1][1], state)
