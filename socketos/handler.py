@@ -20,8 +20,8 @@ class Handler:
     warn: bool = True
     catch: bool = True
     silence: bool = False
-    proceed: bool = False
     exit: bool = False
+    caught: bool = False
     data: ... = None
 
     print_exception_handler: ClassVar[Callable[["Handler", Exception], Any]] = (
@@ -45,6 +45,9 @@ class Handler:
         :return: The generator object.
         """
 
+        self.exit = False
+        self.caught = False
+
         if self.success_callback is not None:
             self.success_callback(self)
 
@@ -63,7 +66,7 @@ class Handler:
 
         if None not in (base, exception, traceback):
             self.exit = True
-            self.proceed = False
+            self.caught = True
 
             if isinstance(exception, tuple(self.exceptions or ()) or Exception):
                 caught = self.catch and True
@@ -105,3 +108,11 @@ class Handler:
             silence=self.silence,
             data=data
         )
+
+    def make_exit(self) -> None:
+
+        self.exit = True
+
+    def make_proceed(self) -> None:
+
+        self.exit = False
