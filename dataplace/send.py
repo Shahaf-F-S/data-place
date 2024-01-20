@@ -52,12 +52,15 @@ class SenderServer(BaseSender, metaclass=ABCMeta):
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
+            save: bool = False,
             delay: float = None
     ) -> None:
 
         self.queues: list[list[ModelIO]] = []
+        self.queue: list[ModelIO] = []
 
         self.delay = delay or self.DELAY
+        self.save = save
 
         BaseSender.__init__(
             self,
@@ -69,8 +72,17 @@ class SenderServer(BaseSender, metaclass=ABCMeta):
 
     async def call(self, data: ModelIO) -> None:
 
-        for queue in self.queues:
-            queue.append(data)
+        if not self.queues and self.save:
+            self.queue.append(data)
+
+        else:
+            for queue in self.queues:
+                queue.extend(self.queue)
+                queue.append(data)
+
+            self.queue.clear()
+
+        await self.callback(data)
 
     async def _handling_loop(self, **kwargs) -> None:
 
@@ -216,6 +228,7 @@ class SenderSocketServer(SenderServer, SenderSocket):
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
+            save: bool = False,
             delay: float = None
     ) -> None:
 
@@ -225,6 +238,7 @@ class SenderSocketServer(SenderServer, SenderSocket):
             paused=paused,
             running=running,
             delay=delay,
+            save=save,
             enabled=enabled
         )
 
@@ -304,6 +318,7 @@ class SenderWebSocketServer(SenderServer, SenderWebSocket):
             callbacks: list[Callback] = None,
             paused: bool = False,
             running: bool = True,
+            save: bool = False,
             delay: float = None
     ) -> None:
 
@@ -314,7 +329,8 @@ class SenderWebSocketServer(SenderServer, SenderWebSocket):
             callbacks=callbacks,
             paused=paused,
             running=running,
-            delay=delay
+            delay=delay,
+            save=save
         )
 
     async def _handling_loop(self, websocket: WebSocketServerProtocol) -> None:

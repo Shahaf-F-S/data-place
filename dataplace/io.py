@@ -36,11 +36,6 @@ class ModelIO(metaclass=ABCMeta):
         return super().__init_subclass__(**kwargs)
 
     @classmethod
-    def load(cls, data: dict[str, ...]) -> Self:
-
-        return cls.labeled_load(data)
-
-    @classmethod
     def labeled_load(cls, data: dict[str, ...]) -> Self:
 
         if cls.TYPE not in data:
@@ -51,7 +46,7 @@ class ModelIO(metaclass=ABCMeta):
 
         e = None
 
-        for base in cls.TYPES[data[cls.TYPE]]:
+        for base in cls.TYPES[data.pop(cls.TYPE)]:
             try:
                 if base.load != ModelIO.load:
                     return base.load(data)
@@ -63,6 +58,8 @@ class ModelIO(metaclass=ABCMeta):
                 pass
 
         raise e
+
+    load = lambda *args, **kwargs: ModelIO.labeled_load(*args, **kwargs)
 
     def dump(self) -> dict[str, ...]:
 

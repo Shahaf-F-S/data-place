@@ -1,6 +1,9 @@
 # store.py
 
-from typing import Iterable, Self, Generator, TypeVar, Hashable, Generic
+from typing import (
+    Iterable, Self, Generator, TypeVar, Hashable,
+    Generic, Callable
+)
 import collections
 
 __all__ = [
@@ -51,12 +54,14 @@ class SpaceStore(Generic[_S, _D]):
 
     def __init__(
             self,
+            signature: Callable[[_D], _S],
             space: ... = None,
             item: type[_D] = None,
             records: Iterable[_D] = None
     ) -> None:
 
         self.space = space
+        self.signature = signature
         self.item = item or self.ITEM
 
         self.store: dict[_S, list[_D]] = {}
@@ -159,6 +164,9 @@ class SpaceStore(Generic[_S, _D]):
     @staticmethod
     def validate_signature(signature: ...) -> tuple:
 
+        if not isinstance(signature, collections.abc.Iterable):
+            signature = (signature,)
+
         if not (
             isinstance(signature, collections.abc.Iterable) and
             all(isinstance(key, Hashable) for key in signature)
@@ -188,7 +196,7 @@ class SpaceStore(Generic[_S, _D]):
 
     def add(self, record: _D) -> _D:
 
-        for container in self.containers(record.signature):
+        for container in self.containers(self.signature(record)):
             container.append(record)
 
         return record

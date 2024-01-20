@@ -1,41 +1,93 @@
-# project-template
+# data-place
 
-> A powerfull and flexible framework for designing async socket based data streaming and distribution systems, with automated parsing, dynamic data store and high-level control hooks.
+> A powerful and flexible framework for designing async socket based data streaming and distribution systems, with automated parsing, dynamic data store and high-level control hooks.
 
-first of all
-------------
-
-#### specifics:
-
-- writen and owned by: Shahaf Frank-Shapir
-- all the rights are saved for: Shahaf Frank-Shapir
-- programming languages: python 3.9.12 (100%)
-
-before we start
----------------
-
-#### description:
-
-- visit the docs to learn more about this project and how to develop with it.
-
-#### dependencies:
-
-- opening:
-  For this is a complex program, which uses a lot of modules, there are required dependencies needed
-  in order to run the program. keep in mined the program was writen in python 3.9, so any python version lower
-  than 3.9 might not work properly.
-
-- install app dependencies by writing the "-r" option to install the requirements
-  writen in a file, and write the following line in the project directory:
-````
-pip install -r requirements.txt
-````
-
-run a test
+Installation
 -----------
+````
+pip install looperation
+````
 
-#### run from windows command line (inside the project directory)
-- run with python by writing to the command line in the project directory:
-````
-python test.py
-````
+example
+-----------
+* integrates with dataclasses and pydantic as a side effect
+
+websocket publisher server
+```python
+import asyncio
+import random
+from uuid import uuid4
+from dataclasses import dataclass
+
+from dataplace import (
+    ModelIO, SenderWebSocketServer, Controller, Callback, SpaceStore
+)
+
+@dataclass(slots=True, frozen=True)
+class Data(ModelIO):
+
+    id: str
+    value: int
+
+async def produce(controller: Controller) -> None:
+
+    while controller.running:
+        while controller.paused:
+            await asyncio.sleep(0.0001)
+
+        data = Data(id=str(uuid4()), value=random.randint(0, 9))
+
+        print(f"produced: {data}")
+
+        await controller.callback(data)
+
+        await asyncio.sleep(1)
+
+store = SpaceStore[int, Data](item=Data, signature=lambda data: data.value)
+
+server = SenderWebSocketServer(host="127.0.0.1", port=5555)
+
+controller = Controller(
+    callbacks=[
+        Callback(callback=lambda data: store.add),
+        Callback(callback=server.call)
+    ]
+)
+
+loop = asyncio.new_event_loop()
+
+loop.create_task(produce(controller))
+loop.create_task(server.start())
+loop.run_forever()
+```
+
+websocket subscriber client
+```python
+import asyncio
+from dataclasses import dataclass
+
+from dataplace import (
+    ModelIO, ReceiverWebSocketClient, Callback, SpaceStore
+)
+
+@dataclass(slots=True, frozen=True)
+class Data(ModelIO):
+
+    value: int
+    id: str
+
+store = SpaceStore[int, Data](signature=lambda data: data.value)
+
+client = ReceiverWebSocketClient(
+    url="ws://127.0.0.1:5555",
+    callbacks=[
+        Callback(callback=lambda data: store.add(data)),
+        Callback(callback=lambda data: print(f"received: {data}"))
+    ]
+)
+
+loop = asyncio.new_event_loop()
+
+loop.create_task(client.start())
+loop.run_forever()
+```
