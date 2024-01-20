@@ -1,14 +1,17 @@
 # save.py
+
 import os
 from base import run_silent_command, suppress
 from specs import project_specs
 from document import generate_html
+
 def main(project: str, silence: bool = True) -> None:
     """
     Runs the function to save thew project.
     :param project: The project name.
     :param silence: The value to silence the process.
     """
+
     commands = [
         lambda: (
             (os.system if not silence else run_silent_command)(
@@ -22,8 +25,10 @@ def main(project: str, silence: bool = True) -> None:
         ),
         lambda: generate_html(package=project)
     ]
+
     for command in commands:
         with suppress(silence=silence):
             command()
+
 if __name__ == "__main__":
-    main(project="socketos")
+    main(project="dataplace")

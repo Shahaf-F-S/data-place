@@ -1,7 +1,9 @@
 # document.py
+
 import os
 from pathlib import Path
 from base import validate_requirement
+
 def generate_html(
         package: str,
         destination: str = None,
@@ -15,11 +17,16 @@ def generate_html(
     :param package: The package to document.
     :param destination: The documentation destination.
     """
+
     validate_requirement("pdoc", path="pdoc3")
+
     from pdoc.cli import main as document, parser
+
     if destination is None:
         destination = "docs"
+
     main_index_file = Path(destination) / Path(package) / Path("index.html")
+
     if reload or not main_index_file.is_dir():
         document(
             parser.parse_args(
@@ -29,5 +36,6 @@ def generate_html(
                 ]
             )
         )
+
     if show:
         os.system(f'start {main_index_file}')

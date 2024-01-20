@@ -2,8 +2,8 @@
 
 from abc import ABCMeta, abstractmethod
 
-from socketos.callback import Callback
-from socketos.control import Controller
+from dataplace.callback import Callback
+from dataplace.control import Controller
 
 __all__ = [
     "BaseCommunicator"

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from socketos.io import ModelIO
+from dataplace.io import ModelIO
 
 @dataclass(slots=True, frozen=True)
 class A(ModelIO):

@@ -1,14 +1,19 @@
 # setup.py
+
 import codecs
+
 with codecs.open('build.py', 'r') as build_file:
     build_source = build_file.read()
+
 source = dict()
 exec(build_source, source)
 setup = source['setup']
+
 def main() -> None:
     """Runs the function to distribute the package."""
+
     setup(
-        package="socketos",
+        package="dataplace",
         exclude=[
             "__pycache__",
             "*.pyc"
@@ -16,7 +21,7 @@ def main() -> None:
         include=[],
         requirements="requirements.txt",
         dev_requirements="requirements-dev.txt",
-        name='socket-os',
+        name='data-place',
         version='0.0.0',
         description=(
             "A powerfull and flexible framework for designing async "
@@ -27,7 +32,7 @@ def main() -> None:
         license='MIT',
         author="Shahaf Frank-Shapir",
         author_email='shahaffrs@gmail.com',
-        url='https://github.com/Shahaf-F-S/socket-os',
+        url='https://github.com/Shahaf-F-S/data-place',
         long_description_content_type="text/markdown",
         classifiers=[
             "Intended Audience :: Developers",
@@ -41,5 +46,6 @@ def main() -> None:
             "Operating System :: OS Independent"
         ]
     )
+
 if __name__ == "__main__":
     main()

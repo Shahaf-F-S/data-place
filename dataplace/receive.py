@@ -9,9 +9,9 @@ from websockets.legacy.server import serve, WebSocketServerProtocol, Serve
 # noinspection PyProtectedMember
 from websockets.legacy.client import connect, Connect, WebSocketClientProtocol
 
-from socketos.io import ModelIO
-from socketos.callback import Callback
-from socketos.base import BaseCommunicator
+from dataplace.io import ModelIO
+from dataplace.callback import Callback
+from dataplace.base import BaseCommunicator
 
 __all__ = [
     "ReceiverSocket",

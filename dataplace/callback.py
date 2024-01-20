@@ -4,7 +4,7 @@ from typing import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
 import asyncio
 
-from socketos.io import ModelIO
+from dataplace.io import ModelIO
 
 __all__ = [
     "Callback"

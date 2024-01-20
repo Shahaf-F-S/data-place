@@ -3,9 +3,9 @@
 from dataclasses import dataclass, field
 import asyncio
 
-from socketos.io import ModelIO
-from socketos.callback import Callback
-from socketos.handler import Handler
+from dataplace.io import ModelIO
+from dataplace.callback import Callback
+from dataplace.handler import Handler
 
 __all__ = [
     "Controller"
