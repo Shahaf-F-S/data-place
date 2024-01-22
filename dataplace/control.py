@@ -11,6 +11,8 @@ __all__ = [
     "Controller"
 ]
 
+Data = ModelIO | object
+
 @dataclass
 class Controller:
 
@@ -45,7 +47,7 @@ class Controller:
 
         self.enabled = False
 
-    async def callback(self, data: ModelIO) -> None:
+    async def callback(self, data: Data) -> None:
 
         if self.callbacks:
             await asyncio.gather(
