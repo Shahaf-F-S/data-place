@@ -13,6 +13,7 @@ example
 * integrates with dataclasses and pydantic as a side effect
 
 websocket publisher server
+
 ```python
 import asyncio
 import random
@@ -23,14 +24,14 @@ from dataplace import (
     ModelIO, SenderWebSocketServer, Controller, Callback, SpaceStore
 )
 
+
 @dataclass(slots=True, frozen=True)
 class Data(ModelIO):
-
     id: str
     value: int
 
-async def produce(controller: Controller) -> None:
 
+async def produce(controller: Controller) -> None:
     while controller.running:
         while controller.paused:
             await asyncio.sleep(0.0001)
@@ -39,9 +40,10 @@ async def produce(controller: Controller) -> None:
 
         print(f"produced: {data}")
 
-        await controller.callback(data)
+        await controller.async_callback(data)
 
         await asyncio.sleep(1)
+
 
 store = SpaceStore[int, Data](item=Data, signature=lambda data: data.value)
 
@@ -49,8 +51,8 @@ server = SenderWebSocketServer(host="127.0.0.1", port=5555)
 
 controller = Controller(
     callbacks=[
-        Callback(callback=lambda data: store.add),
-        Callback(callback=server.call)
+        Callback(async_callback=lambda data: store.add),
+        Callback(async_callback=server.call)
     ]
 )
 
@@ -81,8 +83,8 @@ store = SpaceStore[int, Data](signature=lambda data: data.value)
 client = ReceiverWebSocketClient(
     url="ws://127.0.0.1:5555",
     callbacks=[
-        Callback(callback=lambda data: store.add(data)),
-        Callback(callback=lambda data: print(f"received: {data}"))
+        Callback(async_callback=lambda data: store.add(data)),
+        Callback(async_callback=lambda data: print(f"received: {data}"))
     ]
 )
 

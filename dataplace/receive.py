@@ -117,7 +117,7 @@ class ReceiverSocket(BaseReceiver, metaclass=ABCMeta):
 
         record = decode(data)
 
-        await self.callback(data=record)
+        await self.async_callback(data=record)
 
     async def _handling_loop(
             self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -161,7 +161,7 @@ class ReceiverWebSocket(BaseReceiver, metaclass=ABCMeta):
 
         record = decode(data)
 
-        await self.callback(data=record)
+        await self.async_callback(data=record)
 
     async def send(self, websocket: WebSocket = None) -> None:
 

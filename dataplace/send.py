@@ -82,7 +82,7 @@ class SenderServer(BaseSender, metaclass=ABCMeta):
 
             self.queue.clear()
 
-        await self.callback(data)
+        await self.async_callback(data)
 
     async def _handling_loop(self, **kwargs) -> None:
 

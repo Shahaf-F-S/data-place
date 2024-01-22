@@ -25,7 +25,7 @@ async def produce(controller: Controller) -> None:
 
         print(f"produced: {data}")
 
-        await controller.callback(data)
+        await controller.async_callback(data)
 
         await asyncio.sleep(1)
 

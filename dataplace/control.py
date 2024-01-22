@@ -47,7 +47,7 @@ class Controller:
 
         self.enabled = False
 
-    async def callback(self, data: Data) -> None:
+    async def async_callback(self, data: Data) -> None:
 
         if self.callbacks:
             await asyncio.gather(
@@ -56,3 +56,8 @@ class Controller:
                     for callback in self.callbacks
                 )
             )
+
+    def callback(self, data: Data) -> None:
+
+        if self.callbacks:
+            all(callback.execute(data) for callback in self.callbacks)
