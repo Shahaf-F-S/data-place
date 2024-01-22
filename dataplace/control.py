@@ -52,7 +52,7 @@ class Controller:
         if self.callbacks:
             await asyncio.gather(
                 *(
-                    callback.execute(data)
+                    callback.async_execute(data)
                     for callback in self.callbacks
                 )
             )

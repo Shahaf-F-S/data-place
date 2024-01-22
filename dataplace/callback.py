@@ -23,7 +23,7 @@ class Callback:
     enabled: bool = True
     prepared: bool = False
 
-    async def prepare(self) -> None:
+    async def async_prepare(self) -> None:
         """Connects to the socket service."""
 
         if self.preparation:
@@ -35,22 +35,54 @@ class Callback:
 
         self.prepared = True
 
-    async def execute(self, data: Data) -> None:
+    def prepare(self) -> None:
+        """Connects to the socket service."""
+
+        if self.preparation:
+            if asyncio.iscoroutinefunction(self.preparation):
+                asyncio.run(self.preparation())
+
+            else:
+                self.preparation()
+
+        self.prepared = True
+
+    async def async_execute(self, data: Data) -> None:
 
         if not isinstance(data, tuple(self.types)):
             return
 
         if self.enabled:
             if not self.prepared:
-                await self.prepare()
+                await self.async_prepare()
 
-            await self.call(data=data)
+            await self.async_call(data=data)
 
-    async def call(self, data: Data) -> None:
+    def execute(self, data: Data) -> None:
+
+        if not isinstance(data, tuple(self.types)):
+            return
+
+        if self.enabled:
+            if not self.prepared:
+                self.prepare()
+
+            self.call(data=data)
+
+    async def async_call(self, data: Data) -> None:
 
         if self.callback is not None:
             if asyncio.iscoroutinefunction(self.callback):
                 await self.callback(data)
+
+            else:
+                self.callback(data)
+
+    def call(self, data: Data) -> None:
+
+        if self.callback is not None:
+            if asyncio.iscoroutinefunction(self.callback):
+                asyncio.run(self.callback(data))
 
             else:
                 self.callback(data)
