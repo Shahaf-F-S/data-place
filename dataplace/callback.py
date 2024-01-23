@@ -10,14 +10,12 @@ __all__ = [
     "Callback"
 ]
 
-_TYPES = lambda: {object}
-
 Data = ModelIO | object
 
 @dataclass
 class Callback:
 
-    types: Iterable[type[Data]] = field(default_factory=_TYPES)
+    types: Iterable[type[Data]] = field(default_factory=set)
     callback: Callable[[Data], Awaitable[...] | ...] = None
     preparation: Callable[[], Awaitable[...] | ...] = None
     enabled: bool = True
