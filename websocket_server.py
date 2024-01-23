@@ -38,8 +38,8 @@ def main() -> None:
 
     controller = Controller(
         callbacks=[
-            Callback(callback=lambda data: store.add),
-            Callback(callback=server.call)
+            Callback(callback=lambda data: store.add, types={Data}),
+            Callback(callback=server.call, types={Data})
         ]
     )
 

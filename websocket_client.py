@@ -21,8 +21,8 @@ def main() -> None:
     client = ReceiverWebSocketClient(
         url="ws://127.0.0.1:5555",
         callbacks=[
-            Callback(callback=lambda data: store.add(data)),
-            Callback(callback=lambda data: print(f"received: {data}"))
+            Callback(callback=lambda data: store.add(data), types={Data}),
+            Callback(callback=lambda data: print(f"received: {data}"), types={Data})
         ]
     )
 
