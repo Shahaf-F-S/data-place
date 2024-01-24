@@ -32,13 +32,13 @@ async def produce(controller: Controller) -> None:
 def main() -> None:
     """A function to run the main test."""
 
-    store = SpaceStore[int, Data](item=Data, signature=lambda data: data.value)
+    store = SpaceStore(item=Data, signature=lambda data: data.value)
 
     server = SenderWebSocketServer(host="127.0.0.1", port=5555)
 
     controller = Controller(
         callbacks=[
-            Callback(callback=lambda data: store.add, types={Data}),
+            Callback(callback=store.add, types={Data}),
             Callback(callback=server.call, types={Data})
         ]
     )

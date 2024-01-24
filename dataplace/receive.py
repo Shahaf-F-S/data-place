@@ -12,6 +12,8 @@ from websockets.legacy.client import connect, Connect, WebSocketClientProtocol
 from dataplace.io import ModelIO
 from dataplace.callback import Callback
 from dataplace.base import BaseCommunicator
+from dataplace.control import Controller
+from dataplace.handler import Handler
 
 __all__ = [
     "ReceiverSocket",
@@ -37,10 +39,13 @@ class BaseReceiver(BaseCommunicator, metaclass=ABCMeta):
     def __init__(
             self,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
 
         self.delay = delay or self.DELAY
@@ -49,7 +54,10 @@ class BaseReceiver(BaseCommunicator, metaclass=ABCMeta):
             callbacks=callbacks,
             paused=paused,
             running=running,
-            enabled=enabled
+            enabled=enabled,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     @abstractmethod
@@ -76,10 +84,13 @@ class ReceiverSocket(BaseReceiver, metaclass=ABCMeta):
             host: str,
             port: int,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
 
         self.host = host
@@ -90,7 +101,10 @@ class ReceiverSocket(BaseReceiver, metaclass=ABCMeta):
             paused=paused,
             running=running,
             enabled=enabled,
-            delay=delay
+            delay=delay,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     async def send(
@@ -123,13 +137,24 @@ class ReceiverSocket(BaseReceiver, metaclass=ABCMeta):
             self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
 
-        while self.running:
+        controller = Controller(
+            data=dict(kwargs=dict(reader=reader, writer=writer)),
+            handler=self.handler
+        )
+
+        self.controllers.append(controller)
+
+        while controller.running:
             await asyncio.sleep(self.delay)
 
-            while self.paused:
+            while controller.paused:
                 continue
 
-            await self.handle(reader=reader, writer=writer)
+            with controller.handler:
+                await self.handle(reader=reader, writer=writer)
+
+        if controller in self.controllers:
+            self.controllers.remove(controller)
 
 WebSocket = WebSocketServerProtocol | WebSocketClientProtocol
 
@@ -139,10 +164,13 @@ class ReceiverWebSocket(BaseReceiver, metaclass=ABCMeta):
             self,
             url: str,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
 
         self.url = url
@@ -152,7 +180,10 @@ class ReceiverWebSocket(BaseReceiver, metaclass=ABCMeta):
             paused=paused,
             running=running,
             enabled=enabled,
-            delay=delay
+            delay=delay,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     async def receive(self, websocket: WebSocket = None) -> None:
@@ -243,10 +274,13 @@ class ReceiverWebSocketServer(ReceiverWebSocket, ReceiverServer):
             host: str,
             port: int,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
 
         self.host = host
@@ -258,7 +292,10 @@ class ReceiverWebSocketServer(ReceiverWebSocket, ReceiverServer):
             running=running,
             enabled=enabled,
             url=f"ws://{host}:{port}",
-            delay=delay
+            delay=delay,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     async def connect(self) -> None:

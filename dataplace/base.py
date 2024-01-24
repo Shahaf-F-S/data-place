@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 
 from dataplace.callback import Callback
 from dataplace.control import Controller
+from dataplace.handler import Handler
 
 __all__ = [
     "BaseCommunicator"
@@ -14,19 +15,30 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
     def __init__(
             self,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
-            enabled: bool = True
+            enabled: bool = True,
+            data: ... = None
     ) -> None:
 
         if callbacks is None:
             callbacks = []
 
+        if controllers is None:
+            controllers = []
+
         self._connected = False
 
         super().__init__(
-            callbacks=callbacks, paused=paused,
-            running=running, enabled=enabled
+            callbacks=callbacks,
+            controllers=controllers,
+            paused=paused,
+            running=running,
+            enabled=enabled,
+            handler=handler or Handler(),
+            data=data
         )
 
     @property

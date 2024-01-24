@@ -13,6 +13,8 @@ from websockets.sync.client import connect, ClientConnection
 from dataplace.io import ModelIO
 from dataplace.callback import Callback
 from dataplace.base import BaseCommunicator
+from dataplace.control import Controller
+from dataplace.handler import Handler
 
 __all__ = [
     "encode",
@@ -49,26 +51,32 @@ class SenderServer(BaseSender, metaclass=ABCMeta):
     def __init__(
             self,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
             save: bool = False,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
-
-        self.queues: list[list[ModelIO]] = []
-        self.queue: list[ModelIO] = []
-
-        self.delay = delay or self.DELAY
-        self.save = save
 
         BaseSender.__init__(
             self,
             callbacks=callbacks,
             paused=paused,
             running=running,
-            enabled=enabled
+            enabled=enabled,
+            data=data,
+            controllers=controllers,
+            handler=handler
         )
+
+        self.queues: list[list[ModelIO]] = []
+        self.queue: list[ModelIO] = []
+
+        self.delay = delay or self.DELAY
+        self.save = save
 
     async def call(self, data: ModelIO) -> None:
 
@@ -88,20 +96,32 @@ class SenderServer(BaseSender, metaclass=ABCMeta):
 
         queue: list[ModelIO] = []
 
+        controller = Controller(
+            data=dict(kwargs=kwargs, queue=queue),
+            handler=self.handler
+        )
+
+        self.controllers.append(controller)
+
         self.queues.append(queue)
 
-        while self.running:
+        while controller.running:
             await asyncio.sleep(self.delay)
 
-            if self.paused:
+            if controller.paused:
                 continue
 
             if queue:
                 data = queue.pop(0)
 
-                await self.handle(**kwargs, data=data)
+                with controller.handler:
+                    await self.handle(**kwargs, data=data)
 
-        self.queues.remove(queue)
+        if queue in self.queues:
+            self.queues.remove(queue)
+
+        if controller in self.controllers:
+            self.controllers.remove(controller)
 
 class SenderClient(BaseSender, metaclass=ABCMeta):
 
@@ -114,9 +134,12 @@ class SenderSocket(BaseSender, metaclass=ABCMeta):
             host: str,
             port: int,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
-            enabled: bool = True
+            enabled: bool = True,
+            data: ... = None
     ) -> None:
 
         self.host = host
@@ -126,7 +149,10 @@ class SenderSocket(BaseSender, metaclass=ABCMeta):
             callbacks=callbacks,
             paused=paused,
             running=running,
-            enabled=enabled
+            enabled=enabled,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     async def send(
@@ -225,11 +251,14 @@ class SenderSocketServer(SenderServer, SenderSocket):
             host: str,
             port: int,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             enabled: bool = True,
             save: bool = False,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
 
         SenderServer.__init__(
@@ -239,7 +268,10 @@ class SenderSocketServer(SenderServer, SenderSocket):
             running=running,
             delay=delay,
             save=save,
-            enabled=enabled
+            enabled=enabled,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
         SenderSocket.__init__(
@@ -249,7 +281,10 @@ class SenderSocketServer(SenderServer, SenderSocket):
             running=running,
             host=host,
             port=port,
-            enabled=enabled
+            enabled=enabled,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     async def _handling_loop(
@@ -316,10 +351,13 @@ class SenderWebSocketServer(SenderServer, SenderWebSocket):
             host: str,
             port: int,
             callbacks: list[Callback] = None,
+            controllers: list[Controller] = None,
+            handler: Handler = None,
             paused: bool = False,
             running: bool = True,
             save: bool = False,
-            delay: float = None
+            delay: float = None,
+            data: ... = None
     ) -> None:
 
         self.host = host
@@ -330,7 +368,10 @@ class SenderWebSocketServer(SenderServer, SenderWebSocket):
             paused=paused,
             running=running,
             delay=delay,
-            save=save
+            save=save,
+            controllers=controllers,
+            handler=handler,
+            data=data
         )
 
     async def _handling_loop(self, websocket: WebSocketServerProtocol) -> None:
