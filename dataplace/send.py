@@ -117,6 +117,11 @@ class SenderServer(BaseSender, metaclass=ABCMeta):
                 with controller.handler:
                     await self.handle(**kwargs, data=data)
 
+                if controller.handler.caught and controller.handler.exit:
+                    controller.running = False
+
+                    break
+
         if queue in self.queues:
             self.queues.remove(queue)
 

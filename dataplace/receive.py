@@ -153,6 +153,11 @@ class ReceiverSocket(BaseReceiver, metaclass=ABCMeta):
             with controller.handler:
                 await self.handle(reader=reader, writer=writer)
 
+            if controller.handler.caught and controller.handler.exit:
+                controller.running = False
+
+                break
+
         if controller in self.controllers:
             self.controllers.remove(controller)
 

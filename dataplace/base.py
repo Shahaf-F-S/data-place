@@ -37,7 +37,7 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
             paused=paused,
             running=running,
             enabled=enabled,
-            handler=handler or Handler(),
+            handler=handler or Handler(exit=True),
             data=data
         )
 
