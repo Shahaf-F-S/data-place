@@ -1,8 +1,8 @@
 # handler.py
 
 import warnings
-from typing import Any, Callable, Iterable, Self, ClassVar
-from dataclasses import dataclass
+from typing import Any, Callable, Self, ClassVar
+from dataclasses import dataclass, field
 
 __all__ = [
     "Handler"
@@ -16,9 +16,9 @@ class Handler:
     exception_callback: Callable[["Handler"], Any] = None
     cleanup_callback: Callable[["Handler"], Any] = None
     exception_handler: Callable[["Handler", Exception], Any] = None
-    exceptions: Iterable[type[Exception]] = None
-    warn: bool = True
-    catch: bool = True
+    exceptions: list[type[Exception]] = field(default_factory=list)
+    warn: bool = False
+    catch: bool = False
     silence: bool = False
     exit: bool = False
     caught: bool = False
@@ -68,7 +68,7 @@ class Handler:
             self.exit = True
             self.caught = True
 
-            if isinstance(exception, tuple(self.exceptions or ()) or Exception):
+            if isinstance(exception, tuple(self.exceptions or ())):
                 caught = self.catch and True
 
                 if self.exception_callback is not None:
@@ -85,6 +85,7 @@ class Handler:
                             print(message)
 
                 else:
+                    # noinspection PyTypeChecker
                     self.exception_handler(self, exception)
 
             if self.cleanup_callback is not None:
