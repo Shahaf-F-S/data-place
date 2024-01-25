@@ -10,16 +10,20 @@ __all__ = [
 
 def getattrs(obj: object, /) -> dict[str, ...]:
 
+    data = {}
+
     if hasattr(obj, "__slots__"):
-        return {
-            attribute: getattr(obj, attribute)
-            for attribute in obj.__slots__
-        }
+        data.update(
+            {
+                attribute: getattr(obj, attribute)
+                for attribute in obj.__slots__
+            }
+        )
 
-    elif hasattr(obj, "__dict__"):
-        return obj.__dict__.copy()
+    if hasattr(obj, "__dict__"):
+        data.update(obj.__dict__)
 
-    return {}
+    return data
 
 class ModelIO(metaclass=ABCMeta):
 
@@ -85,12 +89,12 @@ class ModelIO(metaclass=ABCMeta):
     def copy(self, deep: bool = False) -> Self:
 
         pass
-    
+
     def copy(self, **kwargs) -> Self:
 
         if kwargs.get("deep", False):
             return self.deepcopy()
-        
+
         else:
             return self.shallowcopy()
 
