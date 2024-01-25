@@ -44,22 +44,25 @@ class ModelIO(metaclass=ABCMeta):
                 f"JSON data of a {ModelIO} subclass."
             )
 
+        model_type = data.pop(cls.TYPE)
+
+        if model_type not in cls.TYPES:
+            raise KeyError(
+                f"{model_type} is not recognized as a model type."
+            )
+
         e = None
 
-        for base in cls.TYPES[data.pop(cls.TYPE)]:
-            try:
-                if base.load != ModelIO.load:
-                    return base.load(data)
-
-                else:
-                    return base(**data)
-
-            except (ValueError, TypeError, KeyError) as e:
-                pass
+        for base in cls.TYPES[model_type]:
+            return base.load(data)
 
         raise e
 
-    load = lambda *args, **kwargs: ModelIO.labeled_load(*args, **kwargs)
+    @classmethod
+    def load(cls, data: dict[str, ...]) -> Self:
+
+        # noinspection PyArgumentList
+        return cls(**data)
 
     def dump(self) -> dict[str, ...]:
 
