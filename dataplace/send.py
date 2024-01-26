@@ -26,7 +26,8 @@ __all__ = [
     "SenderSocketClient",
     "SenderWebSocketServer",
     "SenderWebSocketClient",
-    "BaseSender"
+    "BaseSender",
+    "Sender"
 ]
 
 def encode(data: ModelIO) -> bytes:
@@ -393,3 +394,15 @@ class SenderWebSocketServer(SenderServer, SenderWebSocket):
 
         async with self.server:
             await asyncio.Future()
+
+class Sender:
+
+    class Socket:
+
+        Server = SenderSocketServer
+        Client = SenderSocketClient
+
+    class WebSocket:
+
+        Server = SenderWebSocketServer
+        Client = SenderWebSocketClient

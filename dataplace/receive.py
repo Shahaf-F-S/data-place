@@ -25,7 +25,8 @@ __all__ = [
     "ReceiverServer",
     "ReceiverWebSocket",
     "BaseReceiver",
-    "decode"
+    "decode",
+    "Receiver"
 ]
 
 def decode(data: bytes) -> ModelIO:
@@ -313,3 +314,15 @@ class ReceiverWebSocketServer(ReceiverWebSocket, ReceiverServer):
 
         async with self.server:
             await asyncio.Future()
+
+class Receiver:
+
+    class Socket:
+
+        Server = ReceiverSocketServer
+        Client = ReceiverSocketClient
+
+    class WebSocket:
+
+        Server = ReceiverWebSocketServer
+        Client = ReceiverWebSocketClient

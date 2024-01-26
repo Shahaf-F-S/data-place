@@ -6,7 +6,7 @@ from uuid import uuid4
 from dataclasses import dataclass
 
 from dataplace import (
-    ModelIO, SenderWebSocketServer, Controller, Callback, SpaceStore
+    ModelIO, Sender, Controller, Callback, SpaceStore
 )
 
 @dataclass(slots=True, frozen=True)
@@ -34,7 +34,7 @@ def main() -> None:
 
     store = SpaceStore(item=Data, signature=lambda data: data.value)
 
-    server = SenderWebSocketServer(host="127.0.0.1", port=5555)
+    server = Sender.WebSocket.Server(host="127.0.0.1", port=5555)
 
     controller = Controller(
         callbacks=[
@@ -44,7 +44,6 @@ def main() -> None:
     )
 
     loop = asyncio.new_event_loop()
-
     loop.create_task(produce(controller))
     loop.create_task(server.start())
     loop.run_forever()

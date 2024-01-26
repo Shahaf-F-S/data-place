@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import dataclass
 
 from dataplace import (
-    ModelIO, ReceiverSocketClient, Callback, SpaceStore
+    ModelIO, Receiver, Callback, SpaceStore
 )
 
 @dataclass(slots=True, frozen=True)
@@ -18,7 +18,7 @@ def main() -> None:
 
     store = SpaceStore(signature=lambda data: data.value)
 
-    client = ReceiverSocketClient(
+    client = Receiver.Socket.Client(
         host="127.0.0.1",
         port=5555,
         callbacks=[

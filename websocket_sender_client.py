@@ -6,7 +6,7 @@ import random
 from dataclasses import dataclass
 
 from dataplace import (
-    ModelIO, SenderWebSocketClient, Callback, SpaceStore, Controller
+    ModelIO, Sender, Callback, SpaceStore, Controller
 )
 
 @dataclass(slots=True, frozen=True)
@@ -34,7 +34,7 @@ def main() -> None:
 
     store = SpaceStore(signature=lambda data: data.value)
 
-    client = SenderWebSocketClient(url="ws://127.0.0.1:5555")
+    client = Sender.WebSocket.Client(url="ws://127.0.0.1:5555")
 
     controller = Controller(
         callbacks=[
@@ -44,7 +44,6 @@ def main() -> None:
     )
 
     loop = asyncio.new_event_loop()
-
     loop.create_task(produce(controller))
     loop.create_task(client.start())
     loop.run_forever()
