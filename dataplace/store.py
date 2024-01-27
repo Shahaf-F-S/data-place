@@ -1,9 +1,6 @@
 # store.py
 
-from typing import (
-    Iterable, Self, Generator, TypeVar, Hashable,
-    Generic, Callable
-)
+from typing import Iterable, Self, Generator, Hashable, Callable
 import collections
 
 __all__ = [
@@ -11,12 +8,9 @@ __all__ = [
     "create_signatures"
 ]
 
-_D = TypeVar("_D")
-_S = TypeVar("_S", Hashable, Iterable[Hashable])
-
-def create_signatures(
-        key: _S, signature: list[_S] = None, signatures: list[_S] = None
-) -> list[tuple[_S, ...]]:
+def create_signatures[S](
+        key: S, signature: list[S] = None, signatures: list[S] = None
+) -> list[tuple[S, ...]]:
 
     if signature is None:
         signature = []
@@ -47,36 +41,24 @@ def create_signatures(
 
     return signatures
 
-class SpaceStore(Generic[_S, _D]):
+class SpaceStore[D, S: Hashable | Iterable[Hashable]]:
 
-    ITEM: type[_D] = None
-    SIGNATURE: type[_S] = None
+    def __init__(self, item: type[D], signature: Callable[[D], S]) -> None:
 
-    def __init__(
-            self,
-            signature: Callable[[_D], _S],
-            space: ... = None,
-            item: type[_D] = None,
-            records: Iterable[_D] = None
-    ) -> None:
-
-        self.space = space
+        self.item = item
         self.signature = signature
-        self.item = item or self.ITEM
 
-        self.store: dict[_S, list[_D]] = {}
-
-        self.add_all(records or ())
+        self.store: dict[S, list[D]] = {}
 
     def __len__(self) -> int:
 
         return len(self.store)
 
-    def __iter__(self) -> Generator[tuple[str, str], ..., ...]:
+    def __iter__(self) -> Generator[S, ..., ...]:
 
         yield from self.keys()
 
-    def __contains__(self, item: tuple[str, str] | _D) -> bool:
+    def __contains__(self, item: S | D) -> bool:
 
         saved = None
 
@@ -121,7 +103,7 @@ class SpaceStore(Generic[_S, _D]):
 
         return self.difference(other)
 
-    def keys(self) -> Generator[_S, ..., ...]:
+    def keys(self) -> Generator[S, ..., ...]:
 
         for keys in self.store.keys():
             if None in keys:
@@ -129,7 +111,7 @@ class SpaceStore(Generic[_S, _D]):
 
             yield keys
 
-    def values(self) -> Generator[list[_D], ..., ...]:
+    def values(self) -> Generator[list[D], ..., ...]:
 
         for keys, values in self.store.items():
             if None in keys:
@@ -137,7 +119,7 @@ class SpaceStore(Generic[_S, _D]):
 
             yield values
 
-    def items(self) -> Generator[tuple[_S, list[_D]], ..., ...]:
+    def items(self) -> Generator[tuple[S, list[D]], ..., ...]:
 
         for keys, values in self.store.items():
             if None in keys:
@@ -145,11 +127,11 @@ class SpaceStore(Generic[_S, _D]):
 
             yield keys, values
 
-    def signatures(self) -> set[_S]:
+    def signatures(self) -> set[S]:
 
         return set(self.keys())
 
-    def records(self) -> list[_D]:
+    def records(self) -> list[D]:
 
         records = []
 
@@ -175,7 +157,7 @@ class SpaceStore(Generic[_S, _D]):
 
         return tuple(signature)
 
-    def containers(self, signature: _S, create: bool = True) -> list[list[_D]]:
+    def containers(self, signature: S, create: bool = True) -> list[list[D]]:
 
         signature = self.validate_signature(signature)
 
@@ -194,25 +176,25 @@ class SpaceStore(Generic[_S, _D]):
                 if sig in self.store
             ]
 
-    def add(self, record: _D) -> _D:
+    def add(self, record: D) -> D:
 
         for container in self.containers(self.signature(record)):
             container.append(record)
 
         return record
 
-    def add_all(self, records: Iterable[_D]) -> Iterable[_D]:
+    def add_all(self, records: Iterable[D]) -> Iterable[D]:
 
         for record in records:
             self.add(record)
 
         return records
 
-    def get(self, signature: _S, index: int = -1) -> _D:
+    def get(self, signature: S, index: int = -1) -> D:
 
         return self.store[signature][index]
 
-    def get_all(self, signature: _S, copy: bool = True) -> list[_D]:
+    def get_all(self, signature: S, copy: bool = True) -> list[D]:
 
         data = self.store[signature]
 
@@ -221,7 +203,7 @@ class SpaceStore(Generic[_S, _D]):
 
         return data
 
-    def pop(self, signature: _S, index: int = -1) -> _D:
+    def pop(self, signature: S, index: int = -1) -> D:
 
         record = self.get(signature, index=index)
 
@@ -235,7 +217,7 @@ class SpaceStore(Generic[_S, _D]):
 
         return record
 
-    def pop_all(self, signature: _S) -> list[_D]:
+    def pop_all(self, signature: S) -> list[D]:
 
         records = self.get_all(signature)
 
@@ -244,7 +226,7 @@ class SpaceStore(Generic[_S, _D]):
 
         return records
 
-    def remove(self, record: _D) -> _D:
+    def remove(self, record: D) -> D:
 
         for container in self.containers(record.signature, create=False):
             try:
@@ -255,7 +237,7 @@ class SpaceStore(Generic[_S, _D]):
 
         return record
 
-    def remove_all(self, records: Iterable[_D]) -> Iterable[_D]:
+    def remove_all(self, records: Iterable[D]) -> Iterable[D]:
 
         for record in records:
             self.remove(record)

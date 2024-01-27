@@ -1,4 +1,4 @@
-# async_callback.py
+# callback.py
 
 from typing import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
@@ -15,9 +15,9 @@ Data = ModelIO | object
 @dataclass
 class Callback:
 
-    types: Iterable[type[Data]] = field(default_factory=set)
     callback: Callable[[Data], Awaitable[...] | ...] = None
     preparation: Callable[[], Awaitable[...] | ...] = None
+    types: Iterable[type[Data]] = field(default_factory=set)
     enabled: bool = True
     prepared: bool = False
 

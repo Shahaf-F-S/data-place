@@ -1,13 +1,11 @@
-# websocket_server.py
+# websocket_sender_server.py
 
 import asyncio
 import random
 from uuid import uuid4
 from dataclasses import dataclass
 
-from dataplace import (
-    ModelIO, Sender, Controller, Callback, SpaceStore
-)
+from dataplace import ModelIO, Sender, Controller, Callback, SpaceStore
 
 @dataclass(slots=True, frozen=True)
 class Data(ModelIO):
@@ -18,19 +16,14 @@ class Data(ModelIO):
 async def produce(controller: Controller) -> None:
 
     while controller.running:
-        while controller.paused:
-            await asyncio.sleep(0.0001)
-
-        data = Data(id=str(uuid4()), value=random.randint(0, 9))
-
-        print(f"produced: {data}")
-
-        await controller.async_callback(data)
+        await controller.hold()
+        await controller.async_callback(
+            Data(id=str(uuid4()), value=random.randint(0, 9))
+        )
 
         await asyncio.sleep(1)
 
 def main() -> None:
-    """A function to run the main test."""
 
     store = SpaceStore(item=Data, signature=lambda data: data.value)
 
@@ -38,8 +31,9 @@ def main() -> None:
 
     controller = Controller(
         callbacks=[
-            Callback(callback=store.add, types={Data}),
-            Callback(callback=server.call, types={Data})
+            Callback(store.add, types={Data}),
+            Callback(server.call, types={Data}),
+            Callback(print, types={Data})
         ]
     )
 

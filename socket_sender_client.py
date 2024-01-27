@@ -5,9 +5,7 @@ from uuid import uuid4
 import random
 from dataclasses import dataclass
 
-from dataplace import (
-    ModelIO, Sender, Callback, SpaceStore, Controller
-)
+from dataplace import ModelIO, Sender, Callback, SpaceStore, Controller
 
 @dataclass(slots=True, frozen=True)
 class Data(ModelIO):
@@ -18,28 +16,24 @@ class Data(ModelIO):
 async def produce(controller: Controller) -> None:
 
     while controller.running:
-        while controller.paused:
-            await asyncio.sleep(0.0001)
-
-        data = Data(id=str(uuid4()), value=random.randint(0, 9))
-
-        print(f"produced: {data}")
-
-        await controller.async_callback(data)
+        await controller.hold()
+        await controller.async_callback(
+            Data(id=str(uuid4()), value=random.randint(0, 9))
+        )
 
         await asyncio.sleep(1)
 
 def main() -> None:
-    """A function to run the main test."""
 
-    store = SpaceStore(signature=lambda data: data.value)
+    store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
 
     client = Sender.Socket.Client(host="127.0.0.1", port=5555)
 
     controller = Controller(
         callbacks=[
-            Callback(callback=store.add, types={Data}),
-            Callback(callback=client.call, types={Data})
+            Callback(store.add, types={Data}),
+            Callback(client.call, types={Data}),
+            Callback(print, types={Data})
         ]
     )
 

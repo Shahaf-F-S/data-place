@@ -12,84 +12,201 @@ example
 -----------
 * integrates with dataclasses and pydantic as a side effect
 
-websocket publisher server
-
+A definition of a data model. 
+Can be either shared globally or reimplemented separately.
+Also defines an async loop function that will be used to produce Data objects.
 ```python
+from dataclasses import dataclass
 import asyncio
 import random
 from uuid import uuid4
-from dataclasses import dataclass
-
-from dataplace import (
-    ModelIO, SenderWebSocketServer, Controller, Callback, SpaceStore
-)
-
+from dataplace import ModelIO, Controller
 
 @dataclass(slots=True, frozen=True)
 class Data(ModelIO):
+
     id: str
     value: int
 
-
 async def produce(controller: Controller) -> None:
+
     while controller.running:
-        while controller.paused:
-            await asyncio.sleep(0.0001)
-
-        data = Data(id=str(uuid4()), value=random.randint(0, 9))
-
-        print(f"produced: {data}")
-
-        await controller.async_callback(data)
-
+        await controller.hold()
+        await controller.async_callback(
+            Data(id=str(uuid4()), value=random.randint(0, 9))
+        )
+        
         await asyncio.sleep(1)
+```
 
+async socket based data sending server
+```python
+import asyncio
+from dataplace import Sender, Controller, Callback, SpaceStore
 
-store = SpaceStore[int, Data](item=Data, signature=lambda data: data.value)
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
 
-server = SenderWebSocketServer(host="127.0.0.1", port=5555)
+server = Sender.Socket.Server(host="127.0.0.1", port=5555)
 
 controller = Controller(
     callbacks=[
-        Callback(async_callback=lambda data: store.add),
-        Callback(async_callback=server.call)
+        Callback(store.add, types={Data}),
+        Callback(server.call, types={Data}),
+        Callback(print, types={Data})
     ]
 )
 
 loop = asyncio.new_event_loop()
-
 loop.create_task(produce(controller))
 loop.create_task(server.start())
 loop.run_forever()
 ```
 
-websocket subscriber client
+async socket based data receiving client
 ```python
 import asyncio
-from dataclasses import dataclass
+from dataplace import Receiver, Callback, SpaceStore
 
-from dataplace import (
-    ModelIO, ReceiverWebSocketClient, Callback, SpaceStore
-)
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
 
-@dataclass(slots=True, frozen=True)
-class Data(ModelIO):
-
-    value: int
-    id: str
-
-store = SpaceStore[int, Data](signature=lambda data: data.value)
-
-client = ReceiverWebSocketClient(
-    url="ws://127.0.0.1:5555",
+client = Receiver.Socket.Client(
+    host="127.0.0.1",
+    port=5555,
     callbacks=[
-        Callback(async_callback=lambda data: store.add(data)),
-        Callback(async_callback=lambda data: print(f"received: {data}"))
+        Callback(store.add, types={Data}),
+        Callback(print, types={Data})
     ]
 )
 
 loop = asyncio.new_event_loop()
-
 loop.create_task(client.start())
+loop.run_forever()
+```
+
+async websocket based data sending server
+```python
+import asyncio
+from dataplace import Sender, Controller, Callback, SpaceStore
+
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+
+server = Sender.WebSocket.Server(host="127.0.0.1", port=5555)
+
+controller = Controller(
+    callbacks=[
+        Callback(store.add, types={Data}),
+        Callback(server.call, types={Data}),
+        Callback(print, types={Data})
+    ]
+)
+
+loop = asyncio.new_event_loop()
+loop.create_task(produce(controller))
+loop.create_task(server.start())
+loop.run_forever()
+```
+
+async websocket based data receiving client
+```python
+import asyncio
+from dataplace import Receiver, Callback, SpaceStore
+
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+
+client = Receiver.WebSocket.Client(
+    url="ws://127.0.0.1:5555",
+    callbacks=[
+        Callback(store.add, types={Data}),
+        Callback(print, types={Data})
+    ]
+)
+
+loop = asyncio.new_event_loop()
+loop.create_task(client.start())
+loop.run_forever()
+```
+
+async socket based data receiving server
+```python
+import asyncio
+from dataplace import Receiver, Callback, SpaceStore
+
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+
+server = Receiver.Socket.Server(
+    host="127.0.0.1",
+    port=5555,
+    callbacks=[
+        Callback(store.add, types={Data}),
+        Callback(print, types={Data})
+    ]
+)
+
+loop = asyncio.new_event_loop()
+loop.create_task(server.start())
+loop.run_forever()
+```
+
+async socket based data sending client
+```python
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+
+client = Sender.Socket.Client(host="127.0.0.1", port=5555)
+
+controller = Controller(
+    callbacks=[
+        Callback(store.add, types={Data}),
+        Callback(client.call, types={Data}),
+        Callback(print, types={Data})
+    ]
+)
+
+loop = asyncio.new_event_loop()
+loop.run_until_complete(client.start())
+loop.create_task(produce(controller))
+loop.run_forever()
+```
+
+async websocket based data receiving server
+```python
+import asyncio
+from dataplace import Receiver, Callback, SpaceStore
+
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+
+server = Receiver.WebSocket.Server(
+    host="127.0.0.1",
+    port=5555,
+    callbacks=[
+        Callback(store.add, types={Data}),
+        Callback(print, types={Data})
+    ]
+)
+
+loop = asyncio.new_event_loop()
+loop.create_task(server.start())
+loop.run_forever()
+```
+
+async websocket based data sending client
+```python
+import asyncio
+from dataplace import Sender, Callback, SpaceStore
+
+store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+
+client = Sender.WebSocket.Client(url="ws://127.0.0.1:5555")
+
+controller = Controller(
+    callbacks=[
+        Callback(store.add, types={Data}),
+        Callback(client.call, types={Data}),
+        Callback(print, types={Data})
+    ]
+)
+
+loop = asyncio.new_event_loop()
+loop.run_until_complete(client.start())
+loop.create_task(produce(controller))
 loop.run_forever()
 ```

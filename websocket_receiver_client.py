@@ -1,11 +1,9 @@
-# websocket_client.py
+# websocket_receiver_client.py
 
 import asyncio
 from dataclasses import dataclass
 
-from dataplace import (
-    ModelIO, Receiver, Callback, SpaceStore
-)
+from dataplace import ModelIO, Receiver, Callback, SpaceStore
 
 @dataclass(slots=True, frozen=True)
 class Data(ModelIO):
@@ -14,15 +12,14 @@ class Data(ModelIO):
     value: int
 
 def main() -> None:
-    """A function to run the main test."""
 
-    store = SpaceStore(signature=lambda data: data.value)
+    store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
 
     client = Receiver.WebSocket.Client(
         url="ws://127.0.0.1:5555",
         callbacks=[
-            Callback(callback=store.add, types={Data}),
-            Callback(callback=lambda data: print(f"received: {data}"), types={Data})
+            Callback(store.add, types={Data}),
+            Callback(print, types={Data})
         ]
     )
 

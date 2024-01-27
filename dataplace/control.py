@@ -22,6 +22,7 @@ class Controller:
     paused: bool = False
     running: bool = True
     enabled: bool = True
+    delay: float = 0.00001
     data: ... = None
 
     def pause(self) -> None:
@@ -84,3 +85,8 @@ class Controller:
             with self.handler:
                 for callback in self.callbacks:
                     callback.execute(data)
+
+    async def hold(self) -> None:
+
+        while self.paused:
+            await asyncio.sleep(self.delay)
