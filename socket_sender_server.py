@@ -16,7 +16,7 @@ class Data(ModelIO):
 async def produce(controller: Controller) -> None:
 
     while controller.running:
-        await controller.hold()
+        await controller.async_hold()
         await controller.async_callback(
             Data(id=str(uuid4()), value=random.randint(0, 9))
         )
@@ -25,7 +25,7 @@ async def produce(controller: Controller) -> None:
 
 def main() -> None:
 
-    store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+    store = SpaceStore[int, Data](lambda data: data.value, Data)
 
     server = Sender.Socket.Server(host="127.0.0.1", port=5555)
 

@@ -41,9 +41,9 @@ def create_signatures[S](
 
     return signatures
 
-class SpaceStore[D, S: Hashable | Iterable[Hashable]]:
+class SpaceStore[S: Hashable | Iterable[Hashable], D]:
 
-    def __init__(self, item: type[D], signature: Callable[[D], S]) -> None:
+    def __init__(self, signature: Callable[[D], S], item: type[D]) -> None:
 
         self.item = item
         self.signature = signature

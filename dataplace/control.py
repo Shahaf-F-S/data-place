@@ -1,5 +1,6 @@
 # control.py
 
+import time
 from dataclasses import dataclass, field
 import asyncio
 
@@ -86,7 +87,12 @@ class Controller:
                 for callback in self.callbacks:
                     callback.execute(data)
 
-    async def hold(self) -> None:
+    async def async_hold(self) -> None:
 
         while self.paused:
             await asyncio.sleep(self.delay)
+
+    def hold(self) -> None:
+
+        while self.paused:
+            time.sleep(self.delay)

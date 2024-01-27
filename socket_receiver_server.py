@@ -13,7 +13,7 @@ class Data(ModelIO):
 
 def main() -> None:
 
-    store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+    store = SpaceStore[int, Data](lambda data: data.value, Data)
 
     server = Receiver.Socket.Server(
         host="127.0.0.1",

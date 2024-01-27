@@ -15,6 +15,7 @@ example
 A definition of a data model. 
 Can be either shared globally or reimplemented separately.
 Also defines an async loop function that will be used to produce Data objects.
+
 ```python
 from dataclasses import dataclass
 import asyncio
@@ -22,20 +23,20 @@ import random
 from uuid import uuid4
 from dataplace import ModelIO, Controller
 
+
 @dataclass(slots=True, frozen=True)
 class Data(ModelIO):
-
     id: str
     value: int
 
-async def produce(controller: Controller) -> None:
 
+async def produce(controller: Controller) -> None:
     while controller.running:
-        await controller.hold()
+        await controller.async_hold()
         await controller.async_callback(
             Data(id=str(uuid4()), value=random.randint(0, 9))
         )
-        
+
         await asyncio.sleep(1)
 ```
 
@@ -44,7 +45,7 @@ async socket based data sending server
 import asyncio
 from dataplace import Sender, Controller, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 server = Sender.Socket.Server(host="127.0.0.1", port=5555)
 
@@ -67,7 +68,7 @@ async socket based data receiving client
 import asyncio
 from dataplace import Receiver, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 client = Receiver.Socket.Client(
     host="127.0.0.1",
@@ -88,7 +89,7 @@ async websocket based data sending server
 import asyncio
 from dataplace import Sender, Controller, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 server = Sender.WebSocket.Server(host="127.0.0.1", port=5555)
 
@@ -111,7 +112,7 @@ async websocket based data receiving client
 import asyncio
 from dataplace import Receiver, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 client = Receiver.WebSocket.Client(
     url="ws://127.0.0.1:5555",
@@ -131,7 +132,7 @@ async socket based data receiving server
 import asyncio
 from dataplace import Receiver, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 server = Receiver.Socket.Server(
     host="127.0.0.1",
@@ -149,7 +150,7 @@ loop.run_forever()
 
 async socket based data sending client
 ```python
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+    store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 client = Sender.Socket.Client(host="127.0.0.1", port=5555)
 
@@ -172,7 +173,7 @@ async websocket based data receiving server
 import asyncio
 from dataplace import Receiver, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 server = Receiver.WebSocket.Server(
     host="127.0.0.1",
@@ -193,7 +194,7 @@ async websocket based data sending client
 import asyncio
 from dataplace import Sender, Callback, SpaceStore
 
-store = SpaceStore[Data, int](Data, signature=lambda data: data.value)
+store = SpaceStore[int, Data](lambda data: data.value, Data)
 
 client = Sender.WebSocket.Client(url="ws://127.0.0.1:5555")
 
