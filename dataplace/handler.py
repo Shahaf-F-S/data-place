@@ -22,6 +22,7 @@ class Handler:
     silence: bool = False
     exit: bool = False
     caught: bool = False
+    exception: Exception | None = field(default=None, init=False)
     data: ... = None
 
     print_exception_handler: ClassVar[Callable[["Handler", Exception], Any]] = (
@@ -47,6 +48,7 @@ class Handler:
 
         self.exit = False
         self.caught = False
+        self.exception = None
 
         if self.success_callback is not None:
             self.success_callback(self)
@@ -67,6 +69,7 @@ class Handler:
         if None not in (base, exception, traceback):
             self.exit = True
             self.caught = True
+            self.exception = exception
 
             if isinstance(exception, tuple(self.exceptions or ())):
                 caught = self.catch and True

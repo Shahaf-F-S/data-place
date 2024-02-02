@@ -22,7 +22,7 @@ def main() -> None:
         requirements="requirements.txt",
         dev_requirements="requirements-dev.txt",
         name='data-place',
-        version='0.1.4',
+        version='0.1.5',
         description=(
             "A powerfull and flexible framework for designing async "
             "socket based data streaming and distribution systems, "
