@@ -48,7 +48,7 @@ class SpaceStore[S: Hashable | Iterable[Hashable], D]:
         self.item = item
         self.signature = signature
 
-        self.store: dict[S, list[D]] = {}
+        self.store: dict[tuple[S, ...], list[D]] = {}
 
     def __len__(self) -> int:
 
@@ -60,27 +60,21 @@ class SpaceStore[S: Hashable | Iterable[Hashable], D]:
 
     def __contains__(self, item: S | D) -> bool:
 
-        saved = None
-
-        if isinstance(item, self.item):
-            saved = item
-
-            item = item.signature
-
-        if not (
+        if (
             isinstance(item, Hashable) and
+            not isinstance(item, collections.abc.Iterable)
+        ):
+            item = (item,)
+
+        if (
+            not isinstance(item, Hashable) and
             isinstance(item, collections.abc.Iterable)
         ):
-            return False
-
-        item = tuple(item)
-
-        if len(item) != 2:
-            return False
+            item = tuple(item)
 
         return (
             (item in self.store) and
-            (saved is None or saved in self.store[item])
+            (item is None or item in self.store[item])
         )
 
     def __add__(self, other: ...) -> Self:
@@ -130,18 +124,6 @@ class SpaceStore[S: Hashable | Iterable[Hashable], D]:
     def signatures(self) -> set[S]:
 
         return set(self.keys())
-
-    def records(self) -> list[D]:
-
-        records = []
-
-        for (exchange, symbol), values in self.store.items():
-            if None in (exchange, symbol):
-                continue
-
-            records.extend(values)
-
-        return records
 
     @staticmethod
     def validate_signature(signature: ...) -> tuple:
