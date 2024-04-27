@@ -60,22 +60,13 @@ class SpaceStore[S: Hashable | Iterable[Hashable], D]:
 
     def __contains__(self, item: S | D) -> bool:
 
-        if (
-            isinstance(item, Hashable) and
-            not isinstance(item, collections.abc.Iterable)
-        ):
+        if not isinstance(item, collections.abc.Iterable):
             item = (item,)
 
-        if (
-            not isinstance(item, Hashable) and
-            isinstance(item, collections.abc.Iterable)
-        ):
+        else:
             item = tuple(item)
 
-        return (
-            (item in self.store) and
-            (item is None or item in self.store[item])
-        )
+        return item in self.store
 
     def __add__(self, other: ...) -> Self:
 
