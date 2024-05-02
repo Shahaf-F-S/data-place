@@ -3,13 +3,16 @@
 import time
 from dataclasses import dataclass, field
 import asyncio
+from typing import Callable, Awaitable, Iterable
 
 from dataplace.io import ModelIO
 from dataplace.callback import Callback
 from dataplace.handler import Handler
 
 __all__ = [
-    "Controller"
+    "Controller",
+    "loop",
+    "async_loop"
 ]
 
 Data = ModelIO | object
@@ -96,3 +99,39 @@ class Controller:
 
         while self.paused:
             time.sleep(self.delay)
+
+async def async_loop[T](
+        controller: Controller,
+        target: Callable[..., Awaitable[T]],
+        args: Iterable = None,
+        kwargs: dict[str, ...] = None,
+        results: list[T] = None
+) -> list[T]:
+
+    if results is None:
+        results = []
+
+    while controller.running:
+        results.append(await target(*args, **kwargs))
+
+        await controller.async_hold()
+
+    return results
+
+def loop[T](
+        controller: Controller,
+        target: Callable[..., Awaitable[T]],
+        args: Iterable = None,
+        kwargs: dict[str, ...] = None,
+        results: list[T] = None
+) -> list[T]:
+
+    if results is None:
+        results = []
+
+    while controller.running:
+        results.append(target(*args, **kwargs))
+
+        controller.hold()
+
+    return results
