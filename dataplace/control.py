@@ -120,7 +120,7 @@ async def async_loop[T](
 
 def loop[T](
         controller: Controller,
-        target: Callable[..., Awaitable[T]],
+        target: Callable[..., T],
         args: Iterable = None,
         kwargs: dict[str, ...] = None,
         results: list[T] = None
