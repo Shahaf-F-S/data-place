@@ -112,9 +112,9 @@ async def async_loop[T](
         results = []
 
     while controller.running:
-        results.append(await target(*(args or ()), **(kwargs or {})))
-
         await controller.async_hold()
+
+        results.append(await target(*(args or ()), **(kwargs or {})))
 
     return results
 
@@ -130,8 +130,8 @@ def loop[T](
         results = []
 
     while controller.running:
-        results.append(target(*(args or ()), **(kwargs or {})))
-
         controller.hold()
+
+        results.append(target(*(args or ()), **(kwargs or {})))
 
     return results
