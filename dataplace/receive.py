@@ -239,6 +239,12 @@ class ReceiverSocketClient(ReceiverSocket, ReceiverClient):
             reader=self.reader, writer=self.writer
         )
 
+    async def close(self) -> None:
+
+        self.writer.close()
+
+        await self.writer.wait_closed()
+
 class ReceiverSocketServer(ReceiverSocket, ReceiverServer):
 
     server: asyncio.Server | None = None
@@ -248,6 +254,12 @@ class ReceiverSocketServer(ReceiverSocket, ReceiverServer):
         self.server = await asyncio.start_server(
             self._handling_loop, self.host, self.port
         )
+
+    async def close(self) -> None:
+
+        self.server.close()
+
+        await self.server.wait_closed()
 
     async def start(self) -> None:
 
@@ -263,6 +275,10 @@ class ReceiverWebSocketClient(ReceiverWebSocket, ReceiverClient):
     async def connect(self) -> None:
 
         self.client = connect(self.url)
+
+    async def close(self) -> None:
+
+        await self.client.protocol.close()
 
     async def start(self) -> None:
 
@@ -307,6 +323,12 @@ class ReceiverWebSocketServer(ReceiverWebSocket, ReceiverServer):
     async def connect(self) -> None:
 
         self.server = serve(self._handling_loop, self.host, self.port)
+
+    async def close(self) -> None:
+
+        self.server.ws_server.close()
+
+        await self.server.ws_server.wait_closed()
 
     async def start(self) -> None:
 

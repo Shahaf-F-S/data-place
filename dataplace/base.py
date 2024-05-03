@@ -63,6 +63,11 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
 
         pass
 
+    @abstractmethod
+    async def close(self) -> None:
+
+        pass
+
     async def _connect(self) -> None:
 
         await self.connect()

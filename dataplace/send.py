@@ -248,6 +248,12 @@ class SenderSocketClient(SenderSocket, SenderClient):
             host=self.host, port=self.port
         )
 
+    async def close(self) -> None:
+
+        self.writer.close()
+
+        await self.writer.wait_closed()
+
 class SenderSocketServer(SenderServer, SenderSocket):
 
     server: asyncio.Server | None = None
@@ -311,6 +317,12 @@ class SenderSocketServer(SenderServer, SenderSocket):
             self._handling_loop, self.host, self.port
         )
 
+    async def close(self) -> None:
+
+        self.server.close()
+
+        await self.server.wait_closed()
+
     async def start(self) -> None:
 
         await super().start()
@@ -347,6 +359,10 @@ class SenderWebSocketClient(SenderClient, SenderWebSocket):
     async def connect(self) -> None:
 
         self.client = connect(self.url)
+
+    async def close(self) -> None:
+
+        self.client.close()
 
 class SenderWebSocketServer(SenderServer, SenderWebSocket):
 
@@ -387,6 +403,12 @@ class SenderWebSocketServer(SenderServer, SenderWebSocket):
     async def connect(self) -> None:
 
         self.server = serve(self._handling_loop, self.host, self.port)
+
+    async def close(self) -> None:
+
+        self.server.ws_server.close()
+
+        await self.server.ws_server.wait_closed()
 
     async def start(self) -> None:
 
