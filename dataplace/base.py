@@ -30,6 +30,7 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
             controllers = []
 
         self._connected = False
+        self._closed = False
 
         super().__init__(
             callbacks=callbacks,
@@ -45,6 +46,11 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
     def connected(self) -> bool:
 
         return self._connected
+
+    @property
+    def closed(self) -> bool:
+
+        return self._closed
 
     async def send(self, **kwargs) -> None:
 
@@ -68,11 +74,21 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
 
         pass
 
+    async def _close(self) -> None:
+
+        await self.close()
+
+        self._closed = True
+
     async def _connect(self) -> None:
 
         await self.connect()
 
         self._connected = True
+
+    async def stop(self) -> None:
+
+        await self._close()
 
     async def start(self) -> None:
 
