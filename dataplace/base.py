@@ -79,6 +79,7 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
         await self.close()
 
         self._closed = True
+        self._connected = False
 
     async def _connect(self) -> None:
 
@@ -88,7 +89,8 @@ class BaseCommunicator(Controller, metaclass=ABCMeta):
 
     async def stop(self) -> None:
 
-        await self._close()
+        if self.connected and not self.closed:
+            await self._close()
 
     async def start(self) -> None:
 
