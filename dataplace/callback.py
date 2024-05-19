@@ -53,6 +53,14 @@ class Callback:
         if not isinstance(data, tuple(self.types)):
             return
 
+        if self.callbacks:
+            await asyncio.gather(
+                *(
+                    callback.async_execute(data)
+                    for callback in self.callbacks
+                )
+            )
+
         if self.enabled:
             if not self.prepared:
                 await self.async_prepare()
@@ -64,6 +72,9 @@ class Callback:
         if not isinstance(data, tuple(self.types)):
             return
 
+        for callback in self.callbacks or ():
+            callback.execute(data)
+
         if self.enabled:
             if not self.prepared:
                 self.prepare()
@@ -71,14 +82,6 @@ class Callback:
             self.call(data=data)
 
     async def async_call(self, data: Data) -> None:
-
-        if self.callbacks:
-            await asyncio.gather(
-                *(
-                    callback.call(data)
-                    for callback in self.callbacks
-                )
-            )
 
         if self.callback is not None:
             if asyncio.iscoroutinefunction(self.callback):
@@ -88,9 +91,6 @@ class Callback:
                 self.callback(data)
 
     def call(self, data: Data) -> None:
-
-        for callback in self.callbacks or ():
-            callback.call(data)
 
         if self.callback is not None:
             if asyncio.iscoroutinefunction(self.callback):
