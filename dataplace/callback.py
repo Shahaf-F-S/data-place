@@ -17,7 +17,10 @@ class Callback:
 
     callback: Callable[[Data], Awaitable[...] | ...] = None
     preparation: Callable[[], Awaitable[...] | ...] = None
+
+    callbacks: list["Callback"] = field(default_factory=list)
     types: Iterable[type[Data]] = field(default_factory=set)
+
     enabled: bool = True
     prepared: bool = False
 
@@ -69,6 +72,14 @@ class Callback:
 
     async def async_call(self, data: Data) -> None:
 
+        if self.callbacks:
+            await asyncio.gather(
+                *(
+                    callback.call(data)
+                    for callback in self.callbacks
+                )
+            )
+
         if self.callback is not None:
             if asyncio.iscoroutinefunction(self.callback):
                 await self.callback(data)
@@ -77,6 +88,9 @@ class Callback:
                 self.callback(data)
 
     def call(self, data: Data) -> None:
+
+        for callback in self.callbacks or ():
+            callback.call(data)
 
         if self.callback is not None:
             if asyncio.iscoroutinefunction(self.callback):
