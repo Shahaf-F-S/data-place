@@ -28,14 +28,14 @@ class Handler:
     print_exception_handler: ClassVar[Callable[["Handler", Exception], Any]] = (
         lambda h, e: print(
             f"Exception raised and handled with data {h.data}:\n"
-            f"{type(e).__name__}:{e}"
+            f"{type(e).__name__}: {e}"
         )
     )
 
     warn_exception_handler: ClassVar[Callable[["Handler", Exception], Any]] = (
         lambda h, e: warnings.warn(
             f"Exception raised and handled with data {h.data}:\n"
-            f"{type(e).__name__}:{e}"
+            f"{type(e).__name__}: {e}"
         )
     )
 

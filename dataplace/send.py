@@ -211,7 +211,7 @@ class SenderSocket(BaseSender, metaclass=ABCMeta):
 
         await self.send(data, reader=reader, writer=writer)
 
-WebSocket = WebSocketServerProtocol | WebSocketClientProtocol | ClientConnection
+type WebSocket = WebSocketServerProtocol | WebSocketClientProtocol | ClientConnection
 
 class SenderWebSocket(BaseSender, metaclass=ABCMeta):
 

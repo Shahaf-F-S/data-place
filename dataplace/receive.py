@@ -162,7 +162,7 @@ class ReceiverSocket(BaseReceiver, metaclass=ABCMeta):
         if controller in self.controllers:
             self.controllers.remove(controller)
 
-WebSocket = WebSocketServerProtocol | WebSocketClientProtocol
+type WebSocket = WebSocketServerProtocol | WebSocketClientProtocol
 
 class ReceiverWebSocket(BaseReceiver, metaclass=ABCMeta):
 
@@ -295,6 +295,7 @@ class ReceiverWebSocketServer(ReceiverWebSocket, ReceiverServer):
             self,
             host: str,
             port: int,
+            protocol: str = "ws",
             callbacks: list[Callback] = None,
             controllers: list[Controller] = None,
             handler: Handler = None,
@@ -307,13 +308,14 @@ class ReceiverWebSocketServer(ReceiverWebSocket, ReceiverServer):
 
         self.host = host
         self.port = port
+        self.protocol = protocol
 
         super().__init__(
             callbacks=callbacks,
             paused=paused,
             running=running,
             enabled=enabled,
-            url=f"ws://{host}:{port}",
+            url=f"{protocol}://{host}:{port}",
             delay=delay,
             controllers=controllers,
             handler=handler,
